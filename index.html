@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Promo Outlet</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        video {
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain; 
+            display: none;
+        }
+
+        #statusMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            text-align: center;
+            font-size: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #cacheStatus {
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="statusMessage">
+        <div class="spinner" id="spinnerIcon"></div>
+        <div id="statusText">Memuat Playlist Promo...</div>
+        <div id="cacheStatus"></div>
+    </div>
+
+    <video id="promoVideo" autoplay muted playsinline></video>
+
+    <script>
+        const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1ImIM9UNpJkljIQoc7QabWJusC6efq4IZHbj9FTIuKYA/export?format=csv";
+        const CACHE_NAME = 'promo-video-cache-v1';
+        
+        let playlist = [];
+        let currentIndex = 0;
+        let currentObjectUrl = null; // Menyimpan URL lokal untuk mencegah memory leak
+        let failedCacheAttempts = new Set(); // Mencegah spam error jika CORS belum aktif
+        
+        const videoElement = document.getElementById('promoVideo');
+        const statusMessage = document.getElementById('statusMessage');
+        const statusText = document.getElementById('statusText');
+        const cacheStatus = document.getElementById('cacheStatus');
+        const spinnerIcon = document.getElementById('spinnerIcon');
+
+        function showStatus(message, subMessage = "", showSpinner = true) {
+            statusMessage.style.display = 'block';
+            statusText.innerText = message;
+            cacheStatus.innerText = subMessage;
+            spinnerIcon.style.display = showSpinner ? 'block' : 'none';
+            videoElement.style.display = 'none';
+        }
+
+        function hideStatus() {
+            statusMessage.style.display = 'none';
+            videoElement.style.display = 'block';
+        }
+
+        // ==========================================
+        // SISTEM CACHING LOKAL TV
+        // ==========================================
+        
+        // 1. Proses Mengunduh Semua Video di Awal (Pre-Cache)
+        async function preCacheAllVideos(showUI = true) {
+            if (!('caches' in window)) return;
+            const cache = await caches.open(CACHE_NAME);
+
+            for (let i = 0; i < playlist.length; i++) {
+                const url = playlist[i];
+                if (failedCacheAttempts.has(url)) continue;
+
+                try {
+                    const response = await cache.match(url);
+                    if (!response) {
+                        if (showUI) {
+                            showStatus("Mengunduh Semua Video...", `Menyimpan video ${i + 1} dari ${playlist.length} ke memori TV...`, true);
+                        }
+                        const fetchReq = await fetch(url, { mode: 'cors' });
+                        if (fetchReq.ok) {
+                            await cache.put(url, fetchReq.clone());
+                        } else {
+                            throw new Error("Gagal mengunduh file");
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`[Info] Gagal cache awal untuk: ${url}. (Pastikan CORS R2 aktif)`);
+                    failedCacheAttempts.add(url);
+                }
+            }
+        }
+
+        // 2. Mengambil video yang sudah di-cache
+        async function getCachedVideoUrl(url) {
+            if (!('caches' in window)) {
+                return url; // Fallback ke streaming biasa
+            }
+
+            if (failedCacheAttempts.has(url)) {
+                return url; 
+            }
+
+            try {
+                const cache = await caches.open(CACHE_NAME);
+                let response = await cache.match(url);
+
+                if (response) {
+                    // Ubah file video di cache menjadi Blob (File lokal)
+                    const blob = await response.blob();
+                    return URL.createObjectURL(blob);
+                }
+                
+                return url; // Jika tidak ada di cache, fallback ke streaming
+            } catch (error) {
+                return url; 
+            }
+        }
+
+        // 3. Membersihkan video lama yang sudah tidak ada di Google Sheets
+        async function cleanOldCaches(validUrls) {
+            if (!('caches' in window)) return;
+            try {
+                const cache = await caches.open(CACHE_NAME);
+                const keys = await cache.keys();
+                for (const request of keys) {
+                    if (!validUrls.includes(request.url)) {
+                        await cache.delete(request);
+                        console.log("Menghapus cache video lama:", request.url);
+                    }
+                }
+            } catch (error) {
+                console.error("Gagal membersihkan cache:", error);
+            }
+        }
+
+        // ==========================================
+        // LOGIKA PEMUTARAN PLAYLIST
+        // ==========================================
+
+        async function fetchPlaylistFromSheet() {
+            try {
+                const response = await fetch(`${GOOGLE_SHEET_CSV_URL}&t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error(`Status ${response.status}`);
+
+                const csvText = await response.text();
+                const lines = csvText.split(/\r?\n/);
+                
+                const validUrls = lines
+                    .map(line => line.split(',')[0].trim())
+                    .filter(url => url.startsWith('http://') || url.startsWith('https://'));
+                
+                if (validUrls.length > 0) {
+                    playlist = validUrls;
+                    // Sinkronisasi memori TV: Hapus video yang sudah dihapus dari Sheet
+                    cleanOldCaches(playlist); 
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error("Kesalahan koneksi ke Google Sheets:", error);
+                return false;
+            }
+        }
+
+        async function playNextVideo() {
+            if (playlist.length === 0) {
+                showStatus("Menunggu data playlist...");
+                await fetchPlaylistFromSheet();
+                if (playlist.length === 0) {
+                    setTimeout(playNextVideo, 10000); 
+                    return;
+                }
+            }
+
+            if (currentIndex >= playlist.length) currentIndex = 0;
+
+            const videoUrl = playlist[currentIndex];
+
+            // Cegah TV Crash (Memory Leak): Hapus referensi file lokal sebelumnya dari RAM
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+
+            // Coba ambil dari Cache TV
+            const cachedSrc = await getCachedVideoUrl(videoUrl);
+            if (cachedSrc.startsWith('blob:')) {
+                currentObjectUrl = cachedSrc;
+            }
+
+            hideStatus();
+            videoElement.src = cachedSrc;
+            
+            videoElement.play().catch(error => {
+                showStatus("Memerlukan izin autoplay browser.", "", false);
+                setTimeout(playNextVideo, 5000);
+            });
+
+            currentIndex++;
+
+            if (currentIndex >= playlist.length) {
+                // Saat siklus playlist selesai, cek update dan cache file baru di latar belakang (tanpa UI loading)
+                await fetchPlaylistFromSheet();
+                preCacheAllVideos(false);
+            }
+        }
+
+        videoElement.addEventListener('ended', playNextVideo);
+        videoElement.addEventListener('error', () => { playNextVideo(); });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            showStatus("Menghubungkan ke pusat kontrol...");
+            const success = await fetchPlaylistFromSheet();
+            if (success) {
+                // Unduh semua video sebelum memutar video pertama
+                await preCacheAllVideos(true);
+                playNextVideo();
+            } else {
+                setInterval(async () => {
+                    if(playlist.length === 0) {
+                        const retry = await fetchPlaylistFromSheet();
+                        if (retry) {
+                            await preCacheAllVideos(true);
+                            playNextVideo();
+                        }
+                    }
+                }, 10000);
+            }
+        });
+    </script>
+</body>
+</html>
