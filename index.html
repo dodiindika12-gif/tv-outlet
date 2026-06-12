@@ -3,265 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display Promo Outlet</title>
+    <title>Flash Sale Beauty</title>
     <style>
-        body, html {
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Poppins:wght@400;600;700&display=swap');
+
+        :root {
+            --magenta: #e90074;
+            --magenta-dark: #b8005b;
+            --yellow: #fffb00;
+            --white: #ffffff;
+            --blue: #4a69ff;
+        }
+
+        body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            overflow: hidden;
-            font-family: sans-serif;
-        }
-
-        video {
-            width: 100vw;
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle, var(--magenta), var(--magenta-dark));
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
             height: 100vh;
-            object-fit: contain; 
-            display: none;
+            overflow: hidden;
         }
 
-        #statusMessage {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #fff;
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2vh 4vw;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 3px dashed var(--yellow);
+        }
+
+        .logo-area {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5vw;
+            font-weight: 900;
+            color: var(--white);
+            text-shadow: 2px 2px 0px var(--magenta-dark);
+            text-transform: uppercase;
+        }
+
+        .logo-area span {
+            color: var(--yellow);
+        }
+
+        .event-date {
+            background-color: var(--white);
+            color: var(--magenta);
+            padding: 1vh 2vw;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 2vw;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            font-size: 20px;
+            padding: 0 2vw;
         }
 
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #fff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px auto;
+        .status-badge {
+            background-color: var(--yellow);
+            color: var(--magenta-dark);
+            font-size: 2vw;
+            font-weight: 800;
+            padding: 1vh 3vw;
+            border-radius: 50px;
+            text-transform: uppercase;
+            margin-bottom: 2vh;
+            animation: pulse 1.5s infinite;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 251, 0, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 251, 0, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 251, 0, 0); }
         }
-        
-        #cacheStatus {
-            font-size: 14px;
-            color: #aaa;
-            margin-top: 10px;
+
+        .brand-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 6vw;
+            font-weight: 900;
+            line-height: 1.1;
+            margin: 0;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            text-transform: uppercase;
         }
+
+        .promo-detail {
+            font-size: 3vw;
+            font-weight: 700;
+            color: var(--yellow);
+            background: var(--blue);
+            padding: 1vh 3vw;
+            border-radius: 15px;
+            margin: 2vh 0 4vh 0;
+            border: 3px solid var(--white);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* COUNTDOWN */
+        .countdown {
+            display: flex;
+            gap: 2vw;
+        }
+
+        .time-box {
+            background: var(--white);
+            color: var(--magenta);
+            width: 12vw;
+            height: 12vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 4px solid var(--yellow);
+        }
+
+        .time-box .num {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 6vw;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .time-box .label {
+            font-size: 1.5vw;
+            font-weight: 700;
+            color: var(--magenta-dark);
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
     </style>
 </head>
 <body>
 
-    <div id="statusMessage">
-        <div class="spinner" id="spinnerIcon"></div>
-        <div id="statusText">Memuat Playlist Promo...</div>
-        <div id="cacheStatus"></div>
-    </div>
+    <header class="header">
+        <div class="logo-area">FLASH <span>SALE</span></div>
+        <div class="event-date">SPESIAL BEAUTY</div>
+    </header>
 
-    <video id="promoVideo" autoplay muted playsinline></video>
+    <main class="main-content">
+        <div class="status-badge" id="status-badge">MEMUAT JADWAL...</div>
+        
+        <h1 class="brand-title" id="brand-title">MENYIAPKAN PROMO</h1>
+        <div class="promo-detail" id="promo-detail">SILAKAN TUNGGU</div>
+
+        <div class="countdown">
+            <div class="time-box">
+                <div class="num" id="hours">00</div>
+                <div class="label">Jam</div>
+            </div>
+            <div class="time-box">
+                <div class="num" id="minutes">00</div>
+                <div class="label">Menit</div>
+            </div>
+            <div class="time-box">
+                <div class="num" id="seconds">00</div>
+                <div class="label">Detik</div>
+            </div>
+        </div>
+    </main>
 
     <script>
-        const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1ImIM9UNpJkljIQoc7QabWJusC6efq4IZHbj9FTIuKYA/export?format=csv";
-        const CACHE_NAME = 'promo-video-cache-v1';
-        
-        let playlist = [];
-        let currentIndex = 0;
-        let currentObjectUrl = null; // Menyimpan URL lokal untuk mencegah memory leak
-        let failedCacheAttempts = new Set(); // Mencegah spam error jika CORS belum aktif
-        
-        const videoElement = document.getElementById('promoVideo');
-        const statusMessage = document.getElementById('statusMessage');
-        const statusText = document.getElementById('statusText');
-        const cacheStatus = document.getElementById('cacheStatus');
-        const spinnerIcon = document.getElementById('spinnerIcon');
+        // Data Jadwal Flash Sale Baru
+        const schedules = [
+            {
+                startH: 8, endH: 12,
+                brands: "NIVEA",
+                promo: "DISKON 50% SEMUA PRODUK"
+            },
+            {
+                startH: 12, endH: 16,
+                brands: "GARNIER",
+                promo: "DISKON HINGGA 50% SEMUA PRODUK"
+            },
+            {
+                startH: 16, endH: 19,
+                brands: "MAYBELLINE",
+                promo: "DISKON HINGGA 50% SEMUA PRODUK"
+            },
+            {
+                startH: 19, endH: 22,
+                brands: "L'OREAL",
+                promo: "DISKON HINGGA 50% SEMUA PRODUK"
+            }
+        ];
 
-        function showStatus(message, subMessage = "", showSpinner = true) {
-            statusMessage.style.display = 'block';
-            statusText.innerText = message;
-            cacheStatus.innerText = subMessage;
-            spinnerIcon.style.display = showSpinner ? 'block' : 'none';
-            videoElement.style.display = 'none';
-        }
+        function updateDisplay() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const timeInMinutes = currentHour * 60 + currentMinute;
 
-        function hideStatus() {
-            statusMessage.style.display = 'none';
-            videoElement.style.display = 'block';
-        }
+            let targetTime = null;
+            let displayStatus = "";
+            let displayBrands = "";
+            let displayPromo = "";
+            let isActive = false;
 
-        // ==========================================
-        // SISTEM CACHING LOKAL TV
-        // ==========================================
-        
-        // 1. Proses Mengunduh Semua Video di Awal (Pre-Cache)
-        async function preCacheAllVideos(showUI = true) {
-            if (!('caches' in window)) return;
-            const cache = await caches.open(CACHE_NAME);
+            // Cek jadwal berdasarkan jam komputer/TV saat ini
+            for (let i = 0; i < schedules.length; i++) {
+                let startMins = schedules[i].startH * 60;
+                let endMins = schedules[i].endH * 60;
 
-            for (let i = 0; i < playlist.length; i++) {
-                const url = playlist[i];
-                if (failedCacheAttempts.has(url)) continue;
-
-                try {
-                    const response = await cache.match(url);
-                    if (!response) {
-                        if (showUI) {
-                            showStatus("Mengunduh Semua Video...", `Menyimpan video ${i + 1} dari ${playlist.length} ke memori TV...`, true);
-                        }
-                        const fetchReq = await fetch(url, { mode: 'cors' });
-                        if (fetchReq.ok) {
-                            await cache.put(url, fetchReq.clone());
-                        } else {
-                            throw new Error("Gagal mengunduh file");
-                        }
-                    }
-                } catch (error) {
-                    console.warn(`[Info] Gagal cache awal untuk: ${url}. (Pastikan CORS R2 aktif)`);
-                    failedCacheAttempts.add(url);
+                if (timeInMinutes >= startMins && timeInMinutes < endMins) {
+                    // Promo sedang berlangsung
+                    isActive = true;
+                    displayStatus = "🔥 SEDANG BERLANGSUNG! SISA WAKTU: 🔥";
+                    displayBrands = schedules[i].brands;
+                    displayPromo = schedules[i].promo;
+                    
+                    targetTime = new Date();
+                    targetTime.setHours(schedules[i].endH, 0, 0, 0);
+                    break;
+                } else if (timeInMinutes < startMins) {
+                    // Menunggu promo berikutnya hari ini
+                    isActive = false;
+                    displayStatus = "⏳ PROMO BERIKUTNYA DIMULAI DALAM: ⏳";
+                    displayBrands = schedules[i].brands;
+                    displayPromo = schedules[i].promo;
+                    
+                    targetTime = new Date();
+                    targetTime.setHours(schedules[i].startH, 0, 0, 0);
+                    break;
                 }
             }
-        }
 
-        // 2. Mengambil video yang sudah di-cache
-        async function getCachedVideoUrl(url) {
-            if (!('caches' in window)) {
-                return url; // Fallback ke streaming biasa
-            }
-
-            if (failedCacheAttempts.has(url)) {
-                return url; 
-            }
-
-            try {
-                const cache = await caches.open(CACHE_NAME);
-                let response = await cache.match(url);
-
-                if (response) {
-                    // Ubah file video di cache menjadi Blob (File lokal)
-                    const blob = await response.blob();
-                    return URL.createObjectURL(blob);
-                }
+            // Jika hari ini sudah lewat jam 22:00, tunggu besok pagi jam 08:00
+            if (!targetTime) {
+                isActive = false;
+                displayStatus = "✨ PROMO HARI INI TELAH SELESAI ✨";
+                displayBrands = "KEMBALI BESOK JAM 08.00 Pagi!";
+                displayPromo = "SIAP-SIAP UNTUK DISKON SPESIAL";
                 
-                return url; // Jika tidak ada di cache, fallback ke streaming
-            } catch (error) {
-                return url; 
-            }
-        }
-
-        // 3. Membersihkan video lama yang sudah tidak ada di Google Sheets
-        async function cleanOldCaches(validUrls) {
-            if (!('caches' in window)) return;
-            try {
-                const cache = await caches.open(CACHE_NAME);
-                const keys = await cache.keys();
-                for (const request of keys) {
-                    if (!validUrls.includes(request.url)) {
-                        await cache.delete(request);
-                        console.log("Menghapus cache video lama:", request.url);
-                    }
-                }
-            } catch (error) {
-                console.error("Gagal membersihkan cache:", error);
-            }
-        }
-
-        // ==========================================
-        // LOGIKA PEMUTARAN PLAYLIST
-        // ==========================================
-
-        async function fetchPlaylistFromSheet() {
-            try {
-                const response = await fetch(`${GOOGLE_SHEET_CSV_URL}&t=${new Date().getTime()}`);
-                if (!response.ok) throw new Error(`Status ${response.status}`);
-
-                const csvText = await response.text();
-                const lines = csvText.split(/\r?\n/);
-                
-                const validUrls = lines
-                    .map(line => line.split(',')[0].trim())
-                    .filter(url => url.startsWith('http://') || url.startsWith('https://'));
-                
-                if (validUrls.length > 0) {
-                    playlist = validUrls;
-                    // Sinkronisasi memori TV: Hapus video yang sudah dihapus dari Sheet
-                    cleanOldCaches(playlist); 
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.error("Kesalahan koneksi ke Google Sheets:", error);
-                return false;
-            }
-        }
-
-        async function playNextVideo() {
-            if (playlist.length === 0) {
-                showStatus("Menunggu data playlist...");
-                await fetchPlaylistFromSheet();
-                if (playlist.length === 0) {
-                    setTimeout(playNextVideo, 10000); 
-                    return;
-                }
+                targetTime = new Date();
+                targetTime.setDate(targetTime.getDate() + 1);
+                targetTime.setHours(8, 0, 0, 0);
             }
 
-            if (currentIndex >= playlist.length) currentIndex = 0;
+            // Hitung selisih waktu
+            const diff = targetTime - now;
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
 
-            const videoUrl = playlist[currentIndex];
+            // Update Tampilan HTML
+            document.getElementById('status-badge').innerText = displayStatus;
+            document.getElementById('brand-title').innerText = displayBrands;
+            document.getElementById('promo-detail').innerText = displayPromo;
 
-            // Cegah TV Crash (Memory Leak): Hapus referensi file lokal sebelumnya dari RAM
-            if (currentObjectUrl) {
-                URL.revokeObjectURL(currentObjectUrl);
-                currentObjectUrl = null;
-            }
-
-            // Coba ambil dari Cache TV
-            const cachedSrc = await getCachedVideoUrl(videoUrl);
-            if (cachedSrc.startsWith('blob:')) {
-                currentObjectUrl = cachedSrc;
-            }
-
-            hideStatus();
-            videoElement.src = cachedSrc;
-            
-            videoElement.play().catch(error => {
-                showStatus("Memerlukan izin autoplay browser.", "", false);
-                setTimeout(playNextVideo, 5000);
-            });
-
-            currentIndex++;
-
-            if (currentIndex >= playlist.length) {
-                // Saat siklus playlist selesai, cek update dan cache file baru di latar belakang (tanpa UI loading)
-                await fetchPlaylistFromSheet();
-                preCacheAllVideos(false);
-            }
-        }
-
-        videoElement.addEventListener('ended', playNextVideo);
-        videoElement.addEventListener('error', () => { playNextVideo(); });
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            showStatus("Menghubungkan ke pusat kontrol...");
-            const success = await fetchPlaylistFromSheet();
-            if (success) {
-                // Unduh semua video sebelum memutar video pertama
-                await preCacheAllVideos(true);
-                playNextVideo();
+            // Efek visual jika sedang diskon vs menunggu
+            if(isActive) {
+                document.getElementById('status-badge').style.backgroundColor = "var(--yellow)";
+                document.getElementById('status-badge').style.color = "var(--magenta-dark)";
             } else {
-                setInterval(async () => {
-                    if(playlist.length === 0) {
-                        const retry = await fetchPlaylistFromSheet();
-                        if (retry) {
-                            await preCacheAllVideos(true);
-                            playNextVideo();
-                        }
-                    }
-                }, 10000);
+                document.getElementById('status-badge').style.backgroundColor = "var(--white)";
+                document.getElementById('status-badge').style.color = "var(--magenta)";
             }
-        });
+
+            // Memastikan selalu dua digit angka
+            document.getElementById('hours').innerText = String(h).padStart(2, '0');
+            document.getElementById('minutes').innerText = String(m).padStart(2, '0');
+            document.getElementById('seconds').innerText = String(s).padStart(2, '0');
+        }
+
+        // Segarkan halaman setiap 1 detik
+        setInterval(updateDisplay, 1000);
+        updateDisplay();
     </script>
 </body>
 </html>
